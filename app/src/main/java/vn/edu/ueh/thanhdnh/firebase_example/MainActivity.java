@@ -13,12 +13,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
   FirebaseFirestore db;
   Button btAdd, btShow;
-  EditText etName, etPhone;
+  EditText etTitle, etContent, etImgCover;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +36,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     db = FirebaseFirestore.getInstance();
     btAdd = findViewById(R.id.btAdd);
     btShow = findViewById(R.id.btShow);
-    etName = findViewById(R.id.etName);
-    etPhone = findViewById(R.id.etPhone);
+    etTitle = findViewById(R.id.etTitle);
+    etContent = findViewById(R.id.etContent);
+    etImgCover = findViewById(R.id.etImgCover);
     btAdd.setOnClickListener(this);
     btShow.setOnClickListener(this);
   }
@@ -44,9 +46,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @Override
   public void onClick(View view) {
     if (view.getId() == R.id.btAdd) {
-      db.collection("users").add(new User(etName.getText().toString(), etPhone.getText().toString()));
-      etName.setText("");
-      etPhone.setText("");
+      // 1. Tạo một DocumentReference để xin cấp trước ID
+      DocumentReference newDocRef = db.collection("articles").document();
+      
+      // 2. Tạo đối tượng Article
+      Article newArticle = new Article(
+              etTitle.getText().toString(),
+              etContent.getText().toString(),
+              etImgCover.getText().toString()
+      );
+      
+      // 3. Gán ID vừa xin được vào biến docId của đối tượng
+      newArticle.setDocId(newDocRef.getId());
+      
+      // 4. Lưu lên Firestore bằng set()
+      newDocRef.set(newArticle);
+
+      etTitle.setText("");
+      etContent.setText("");
+      etImgCover.setText("");
     } else if (view.getId() == R.id.btShow) {
       Intent intent = new Intent(getBaseContext(), ShowDataActivity.class);
       startActivity(intent);
